@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { parse } from "jsonc-parser";
 import sidebarRawData from "./sidebarData.jsonc?raw";
+import SearchView from "./SearchView";
 import "../styles/components/Sidebar.css";
 
 const sidebarData = parse(sidebarRawData);
@@ -45,9 +46,7 @@ const Sidebar = () => {
 
       {/* Search View */}
       {showSearch && (
-        <div className="search-view">
-          <input type="text" placeholder="Search..." className="search-input" />
-        </div>
+        <SearchView></SearchView>
       )}
 
       {/* Main Content */}
