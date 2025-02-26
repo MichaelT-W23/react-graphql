@@ -54,7 +54,7 @@
     
 
 .sidebar nav ul li .sidebar-link:hover {
-    background-color: #e5e7eb;
+    background-color: #eeeff2;
   }
 
   .sidebar nav ul li .sidebar-link span {
@@ -82,9 +82,18 @@
     width: 100
   }
 
+  .sidebar-link.active-item {
+    /* color: red !important; */
+    font-weight: bold;
+  }
+  
+  .sidebar-link.active-item .material-symbols-outlined {
+    /* color: red; */
+    font-weight: bold;
+  }  
 
   .sidebar-link.active-search {
-    background-color: #e5e7eb; /* Keep search icon highlighted */
+    background-color: #e5e7eb;
   }
   
   .sidebar.collapsed .sidebar-link.active-search {

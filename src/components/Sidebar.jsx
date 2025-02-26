@@ -10,16 +10,20 @@ const sidebarData = parse(sidebarRawData);
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const handleNavClick = (item) => {
+    setSelectedItem(item.name);
+
     if (item.name === "Search") {
       setCollapsed(true);
       setShowSearch(true);
     } else {
-      setShowSearch(false); // Close search when other items are clicked
+      setShowSearch(false);
       setCollapsed(false);
     }
   };
+
 
   return (
     <div className="sidebar-container">
@@ -32,10 +36,14 @@ const Sidebar = () => {
               <li key={index}>
                 <Link
                   to={item.route}
-                  className={`sidebar-link ${item.name === "Search" && showSearch ? "active-search" : ""}`}
+                  className={`sidebar-link ${item.name === selectedItem ? "active-item" : ""} ${
+                    item.name === "Search" && showSearch ? "active-search" : ""
+                  }`}
                   onClick={() => handleNavClick(item)}
                 >
-                  <span className="material-symbols-outlined">{item.icon}</span>
+                  <span className={`material-symbols-outlined ${item.name === selectedItem ? "active-icon" : ""}`}>
+                    {item.icon}
+                  </span>
                   {!collapsed && item.name}
                 </Link>
               </li>
