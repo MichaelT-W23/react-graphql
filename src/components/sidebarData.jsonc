@@ -1,0 +1,34 @@
+{
+    "SidebarItems": [
+        {
+            "icon": "home",
+            "name": "Home",
+            "route": "/"
+        },
+        {
+            "icon": "search",
+            "name": "Search",
+            "route": "/second-page"
+        },
+        {
+            "icon": "editor_choice",
+            "name": "Authors",
+            "route": "/second-page"
+        },
+        {
+            "icon": "comedy_mask", //Was Mystery
+            "name": "Genres",
+            "route": "/second-page"
+        },
+        {
+            "icon": "book_2",
+            "name": "Add Book",
+            "route": "/second-page"
+        },
+        {
+            "icon": "edit",
+            "name": "Add Author",
+            "route": "/second-page"
+        }
+    ]
+}
