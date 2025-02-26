@@ -51,12 +51,59 @@
     transition: background-color 0.2s ease-in-out;
   }
   
-  .sidebar nav ul li .sidebar-link:hover {
+    
+
+.sidebar nav ul li .sidebar-link:hover {
     background-color: #e5e7eb;
   }
-  
+
   .sidebar nav ul li .sidebar-link span {
     margin-right: 17px;
     font-size: 35px;
+  }
+  
+
+
+  .sidebar.collapsed {
+    width: 80px;
+    padding: 12px;
+  }
+  
+  .sidebar.collapsed h2 {
+    display: none;
+  }
+  
+  .sidebar.collapsed .sidebar-link {
+    justify-content: center;
+  }
+  
+  .sidebar.collapsed .sidebar-link span {
+    margin-right: 0;
+    width: 100
+  }
+  
+  .search-view {
+    position: fixed;
+    top: 0;
+    left: 80px;
+    width: 300px;
+    height: 100vh;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .sidebar-link.active-search {
+    background-color: #e5e7eb; /* Keep search icon highlighted */
+  }
+  
+  .sidebar.collapsed .sidebar-link.active-search {
+    justify-content: center;
   }
   
