@@ -9,7 +9,6 @@ const sidebarData = parse(sidebarRawData);
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [activeItem, setActiveItem] = useState(null);
 
   const handleNavClick = (item) => {
     if (item.name === "Search") {
@@ -19,7 +18,6 @@ const Sidebar = () => {
       setShowSearch(false); // Close search when other items are clicked
       setCollapsed(false);
     }
-    setActiveItem(item.name);
   };
 
   return (

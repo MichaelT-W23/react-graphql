@@ -13,7 +13,7 @@
         {
             "icon": "editor_choice",
             "name": "Authors",
-            "route": "/second-page"
+            "route": "/"
         },
         {
             "icon": "comedy_mask", //Was Mystery
@@ -23,7 +23,7 @@
         {
             "icon": "book_2",
             "name": "Add Book",
-            "route": "/second-page"
+            "route": "/"
         },
         {
             "icon": "edit",
