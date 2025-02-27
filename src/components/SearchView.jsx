@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { gql, useQuery } from "@apollo/client";
-import "../styles/components/SearchView.css";
+import styles from "../styles/components/SearchView.module.css";
 
 // GraphQL query
 const GET_ALL_BOOKS = gql`
@@ -47,13 +47,13 @@ const SearchView = () => {
   if (error) return <p>Error loading books: {error.message}</p>;
 
   return (
-    <div className="search-view">
-      <div className="search-section">
-        <div className="search-header">
+    <div className={styles['search-view']}>
+      <div className={styles['search-section']}>
+        <div className={styles['search-header']}>
           <p>Search</p>
         </div>
 
-        <div className="search-input-container">
+        <div className={styles['search-input-container']}>
           {!isFocused && (
             <span className="material-symbols-outlined search-icon">search</span>
           )}
@@ -61,7 +61,7 @@ const SearchView = () => {
             ref={searchInputRef}
             type="text"
             placeholder="Search by title or author..."
-            className="search-input"
+            className={styles['search-input']}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onFocus={() => setIsFocused(true)}
@@ -76,12 +76,13 @@ const SearchView = () => {
             </span>
           )}
         </div>
+
       </div>
 
-      <div className="book-list">
+      <div className={styles['book-list']}>
         {filteredBooks.length > 0 ? (
           filteredBooks.map((book) => (
-            <div key={book.id} className="book-item">
+            <div key={book.id} className={styles['book-item']}>
               <h3>{book.title}</h3>
               <p>Author: {book.author.name}</p>
               <p>Publication Year: {book.publicationYear}</p>
@@ -89,7 +90,7 @@ const SearchView = () => {
             </div>
           ))
         ) : (
-          <p className="no-results">No books found for &quot;{searchTerm}&quot;</p>
+          <p className={styles['no-results']}>No books found for &quot;{searchTerm}&quot;</p>
         )}
       </div>
     </div>

@@ -57,7 +57,7 @@ html, body {
   padding-bottom: 100px;
 }
 
-.bookListItem {
+.book-list-item {
   display: flex;
   justify-content: center;
 }

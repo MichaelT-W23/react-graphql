@@ -3,7 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 import { parse } from "jsonc-parser";
 import sidebarRawData from "./sidebarData.jsonc?raw";
 import SearchView from "./SearchView";
-import "../styles/components/Sidebar.css";
+import styles from "../styles/components/Sidebar.module.css";
 
 const sidebarData = parse(sidebarRawData);
 
@@ -25,20 +25,21 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="sidebar-container">
-      <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-        <h2 className={collapsed ? "hidden" : ""}>BookQL</h2>
+    <div className={styles["sidebar-container"]}>
+      <div className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
+        <h2 className={collapsed ? styles.hidden : ""}>BookQL</h2>
         <nav>
           <ul>
             {sidebarData.SidebarItems.map((item, index) => (
               <li key={index}>
                 <Link
                   to={item.route || "#"}
-                  className={`sidebar-link ${item.name === selectedItem ? "active-item" : ""} 
-                              ${item.name === "Search" && showSearch ? "active-search" : ""}`}
+                  className={`${styles["sidebar-link"]} 
+                              ${item.name === selectedItem ? styles["active-item"] : ""} 
+                              ${item.name === "Search" && showSearch ? styles["active-search"] : ""}`}
                   onClick={(event) => handleNavClick(item, event)}
                 >
-                  <span className={`material-symbols-outlined ${item.name === selectedItem ? "active-icon" : ""}`}>
+                  <span className={`material-symbols-outlined ${item.name === selectedItem ? styles["active-icon"] : ""}`}>
                     {item.icon}
                   </span>
                   {!collapsed && item.name}
@@ -47,12 +48,12 @@ const Sidebar = () => {
             ))}
           </ul>
         </nav>
-        <div className={`search-container ${showSearch ? "search-open" : "search-closed"}`}>
-        {showSearch && <SearchView />}
-      </div>
+        <div className={`${styles["search-container"]} ${showSearch ? styles["search-open"] : styles["search-closed"]}`}>
+          {showSearch && <SearchView />}
+        </div>
       </div>
       
-      <div className="main-content">
+      <div className={styles["main-content"]}>
         <Outlet />
       </div>
     </div>

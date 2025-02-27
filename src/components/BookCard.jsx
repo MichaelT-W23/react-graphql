@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 
 const BookCard = ({ title, body }) => {
   return (
-    <div className="w-72 bg-gray-100 rounded-xl shadow-md overflow-hidden transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+    <div className="w-72 bg-gray-100 rounded-xl shadow-xl overflow-hidden transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg cursor-pointer">
       <div style={{ backgroundColor: '#5EA98C' }} className="p-3">
         <h3 className="text-lg font-bold text-black text-center">{title}</h3>
       </div>

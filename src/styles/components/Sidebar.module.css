@@ -6,6 +6,7 @@
 
 .sidebar {
   width: 245px;
+  z-index: 10;
   background-color: white;
   color: black;
   position: fixed;

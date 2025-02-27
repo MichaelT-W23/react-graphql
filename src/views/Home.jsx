@@ -23,11 +23,11 @@ const BooksList = () => {
   if (error) return <p className={styles.errorText}>Error loading books: {error.message}</p>;
 
   return (
-    <div className={styles['container']}>
+    <div className={styles.container}>
       <h1 className={styles['page-title']}>📚 Explore Our Books</h1>
       <ul className={styles['book-list']}>
         {data.getAllBooks.map((book) => (
-          <li key={book.id} className={styles.bookListItem}>
+          <li key={book.id} className={styles['book-list-item']}>
             <BookCard title={book.title} body={book} />
           </li>
         ))}
