@@ -5,9 +5,11 @@ import Sidebar from './components/Sidebar';
 function App() {
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <div className="w-[245px]">
+        <Sidebar />
+      </div>
+      
       <div className="flex-1 p-6 overflow-auto">
-        <p className="text-2xl">TEST WEBSITE</p>
         <AppRouter />
       </div>
     </div>

@@ -1,16 +1,35 @@
 import { useEffect, useState, useRef } from "react";
+import { gql, useQuery } from "@apollo/client";
 import "../styles/components/SearchView.css";
-import booksData from "./DELETETHIS.json";
+
+// GraphQL query
+const GET_ALL_BOOKS = gql`
+  query {
+    getAllBooks {
+      id
+      title
+      publicationYear
+      genre
+      author {
+        id
+        name
+      }
+    }
+  }
+`;
 
 const SearchView = () => {
+  const { loading, error, data } = useQuery(GET_ALL_BOOKS);
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const searchInputRef = useRef(null);
 
   useEffect(() => {
-    setBooks(booksData.getAllBooks);
-  }, []);
+    if (data) {
+      setBooks(data.getAllBooks);
+    }
+  }, [data]);
 
   const filteredBooks = books.filter(
     (book) =>
@@ -23,6 +42,9 @@ const SearchView = () => {
     setIsFocused(false);
     searchInputRef.current?.blur();
   };
+
+  if (loading) return <p>Loading books...</p>;
+  if (error) return <p>Error loading books: {error.message}</p>;
 
   return (
     <div className="search-view">
