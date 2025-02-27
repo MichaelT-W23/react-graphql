@@ -17,13 +17,24 @@ const SearchView = () => {
 
   return (
     <div className="search-view">
-      <input 
-        type="text" 
-        placeholder="Search by title or author..." 
-        className="search-input"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+      <div className="search-section">
+        <div className="search-header">
+          <p>Search</p>
+        </div>
+
+        {/* Search Input Wrapper */}
+        <div className="search-input-container">
+          <span className="material-symbols-outlined search-icon">search</span>
+          <input 
+            type="text" 
+            placeholder="Search by title or author..." 
+            className="search-input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
       <div className="book-list">
         {filteredBooks.map((book) => (
           <div key={book.id} className="book-item">

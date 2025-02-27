@@ -9,10 +9,50 @@
   padding: 20px;
 }
 
+.search-section {
+  border-bottom: 1px solid #D0D0D0;
+  margin-left: -20px;
+  margin-right: -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.search-header {
+  color: black;
+  display: flex;
+  font-size: 22px;
+  font-family: Arial, sans-serif;
+  font-weight: 600;
+}
+
+.search-input-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 22px;
+  color: #555;
+}
+
 .search-input {
   width: 100%;
   padding: 10px;
+  padding: 10px 10px 10px 40px;
   font-size: 16px;
+  margin-bottom: 10px;
+  background-color: #e5e7eb;
+  border-radius: 8px;
+  margin-top: 25px;
+  margin-bottom: 22px;
+}
+
+.search-input:focus {
+  outline: none;
 }
 
 .book-item {
