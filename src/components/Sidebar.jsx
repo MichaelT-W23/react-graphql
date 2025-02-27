@@ -24,10 +24,8 @@ const Sidebar = () => {
     }
   };
 
-
   return (
     <div className="sidebar-container">
-      {/* Sidebar */}
       <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
         <h2 className={collapsed ? "hidden" : ""}>BookQL</h2>
         <nav>
@@ -35,11 +33,10 @@ const Sidebar = () => {
             {sidebarData.SidebarItems.map((item, index) => (
               <li key={index}>
                 <Link
-                  to={item.route}
-                  className={`sidebar-link ${item.name === selectedItem ? "active-item" : ""} ${
-                    item.name === "Search" && showSearch ? "active-search" : ""
-                  }`}
-                  onClick={() => handleNavClick(item)}
+                  to={item.route || "#"}
+                  className={`sidebar-link ${item.name === selectedItem ? "active-item" : ""} 
+                              ${item.name === "Search" && showSearch ? "active-search" : ""}`}
+                  onClick={(event) => handleNavClick(item, event)}
                 >
                   <span className={`material-symbols-outlined ${item.name === selectedItem ? "active-icon" : ""}`}>
                     {item.icon}
@@ -50,14 +47,11 @@ const Sidebar = () => {
             ))}
           </ul>
         </nav>
+        <div className={`search-container ${showSearch ? "search-open" : "search-closed"}`}>
+        {showSearch && <SearchView />}
       </div>
-
-      {/* Search View */}
-      {showSearch && (
-        <SearchView></SearchView>
-      )}
-
-      {/* Main Content */}
+      </div>
+      
       <div className="main-content">
         <Outlet />
       </div>

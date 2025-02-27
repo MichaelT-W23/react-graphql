@@ -8,7 +8,7 @@
         {
             "icon": "search",
             "name": "Search",
-            "route": "/second-page"
+            "route": ""
         },
         {
             "icon": "editor_choice",

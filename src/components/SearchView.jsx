@@ -6,7 +6,6 @@ const SearchView = () => {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    // Set the books data from the imported JSON file
     setBooks(booksData.getAllBooks);
   }, []);
 
