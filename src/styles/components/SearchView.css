@@ -39,9 +39,17 @@
   color: #555;
 }
 
+.cancel-icon {
+  position: absolute;
+  right: 11px;
+  margin-top: 3px;
+  font-size: 17px;
+  color: #555;
+  cursor: pointer;
+}
+
 .search-input {
   width: 100%;
-  padding: 10px;
   padding: 10px 10px 10px 40px;
   font-size: 16px;
   margin-bottom: 10px;
@@ -49,6 +57,7 @@
   border-radius: 8px;
   margin-top: 25px;
   margin-bottom: 22px;
+  border: none;
 }
 
 .search-input:focus {
@@ -56,11 +65,16 @@
   padding: 10px;
 }
 
+.search-input:not(:placeholder-shown) {
+  padding: 10px !important;
+}
+
 .book-item {
   border: 1px solid red;
   margin-top: 30px;
 }
 
+/* Hide search icon when input is focused */
 .search-input-container:focus-within .search-icon {
   display: none;
 }

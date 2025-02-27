@@ -1,19 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from "react";
 import "../styles/components/SearchView.css";
-import booksData from './DELETETHIS.json';
+import booksData from "./DELETETHIS.json";
 
 const SearchView = () => {
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     setBooks(booksData.getAllBooks);
   }, []);
 
-  const filteredBooks = books.filter((book) => 
-    book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    book.author.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBooks = books.filter(
+    (book) =>
+      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      book.author.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setIsFocused(false);
+    searchInputRef.current?.blur(); // Remove focus from input
+  };
 
   return (
     <div className="search-view">
@@ -24,14 +33,27 @@ const SearchView = () => {
 
         {/* Search Input Wrapper */}
         <div className="search-input-container">
-          <span className="material-symbols-outlined search-icon">search</span>
-          <input 
-            type="text" 
-            placeholder="Search by title or author..." 
+          {!isFocused && (
+            <span className="material-symbols-outlined search-icon">search</span>
+          )}
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search by title or author..."
             className="search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => searchTerm === "" && setIsFocused(false)}
           />
+          {isFocused && (
+            <span
+              className="material-symbols-outlined cancel-icon"
+              onClick={clearSearch}
+            >
+              cancel
+            </span>
+          )}
         </div>
       </div>
 
