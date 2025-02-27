@@ -14,7 +14,7 @@ html, body {
   width: 100%;
 }
 
-.pageTitle {
+.page-title {
   padding-top: 15px;
   font-size: 28px;
   font-weight: bold;
@@ -25,7 +25,7 @@ html, body {
   letter-spacing: 1px;
 }
 
-.pageTitle::after {
+.page-title::after {
   content: "";
   display: block;
   width: 400px;
@@ -35,17 +35,17 @@ html, body {
   border-radius: 2px;
 }
 
-.loadingText {
+.loading-text {
   font-size: 16px;
   color: #7b7b7b;
 }
 
-.errorText {
+.error-text {
   font-size: 16px;
   color: #d9534f;
 }
 
-.bookList {
+.book-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
