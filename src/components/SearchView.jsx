@@ -57,14 +57,18 @@ const SearchView = () => {
       </div>
 
       <div className="book-list">
-        {filteredBooks.map((book) => (
-          <div key={book.id} className="book-item">
-            <h3>{book.title}</h3>
-            <p>Author: {book.author.name}</p>
-            <p>Publication Year: {book.publicationYear}</p>
-            <p>Genre: {book.genre}</p>
-          </div>
-        ))}
+        {filteredBooks.length > 0 ? (
+          filteredBooks.map((book) => (
+            <div key={book.id} className="book-item">
+              <h3>{book.title}</h3>
+              <p>Author: {book.author.name}</p>
+              <p>Publication Year: {book.publicationYear}</p>
+              <p>Genre: {book.genre}</p>
+            </div>
+          ))
+        ) : (
+          <p className="no-results">No books found for &quot;{searchTerm}&quot;</p>
+        )}
       </div>
     </div>
   );

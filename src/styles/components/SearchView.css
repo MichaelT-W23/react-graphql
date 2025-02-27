@@ -77,3 +77,7 @@
 .search-input-container:focus-within .search-icon {
   display: none;
 }
+
+.no-results {
+  margin-top: 10px;
+}
