@@ -9,7 +9,7 @@ function SecondPage() {
   };
 
   return (
-    <div>
+    <div className="bg-purple-800">
       <p className="text-purple-500 font-sans">SECOND PAGE</p>
       <RouterBtn path="/" buttonText="Go to Home Page" />
       <div>

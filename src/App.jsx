@@ -9,7 +9,7 @@ function App() {
         <Sidebar />
       </div>
       
-      <div className="flex-1 p-6 overflow-auto">
+      <div >
         <AppRouter />
       </div>
     </div>

@@ -7,6 +7,7 @@ export function AppRouter() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/second-page" element={<SecondPage />} />
+      <Route path="/authors" element={<SecondPage />} />
     </Routes>
   );
 }
