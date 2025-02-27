@@ -21,7 +21,7 @@ const SearchView = () => {
   const clearSearch = () => {
     setSearchTerm("");
     setIsFocused(false);
-    searchInputRef.current?.blur(); // Remove focus from input
+    searchInputRef.current?.blur();
   };
 
   return (
@@ -31,7 +31,6 @@ const SearchView = () => {
           <p>Search</p>
         </div>
 
-        {/* Search Input Wrapper */}
         <div className="search-input-container">
           {!isFocused && (
             <span className="material-symbols-outlined search-icon">search</span>
