@@ -53,9 +53,14 @@
 
 .search-input:focus {
   outline: none;
+  padding: 10px;
 }
 
 .book-item {
   border: 1px solid red;
   margin-top: 30px;
+}
+
+.search-input-container:focus-within .search-icon {
+  display: none;
 }
