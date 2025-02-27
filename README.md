@@ -1,8 +1,8 @@
-# React + Vite
+# react-graphql-website
+## [Link to Website](https://michaelt-w23.github.io/react-graphql-website/)
+This is the website for the [BookQL-Api](https://api.bookql.com/).
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Technologies Used
+- React
+- Apollo Server
+- GraphQL
