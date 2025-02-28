@@ -18,17 +18,17 @@
         {
             "icon": "comedy_mask", //Was Mystery
             "name": "Genres",
-            "route": "/second-page"
+            "route": "/genres"
         },
         {
             "icon": "book_2",
             "name": "Add Book",
-            "route": "/"
+            "route": "/add-book"
         },
         {
             "icon": "edit",
             "name": "Add Author",
-            "route": "/second-page"
+            "route": "/add-author"
         }
     ]
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useLazyQuery } from "@apollo/client";
 import BookCard from "../components/BookCard";
 
 const GET_ALL_GENRES = gql`
@@ -39,12 +39,11 @@ const GET_ALL_BOOKS = gql`
 export default function Genres() {
   const { data: genreData, refetch: refetchGenres } = useQuery(GET_ALL_GENRES);
   const { data: allBooksData, loading, error, refetch: refetchAllBooks } = useQuery(GET_ALL_BOOKS);
-  const { data: genreBooksData, refetch: refetchBooksByGenre } = useQuery(GET_BOOKS_BY_GENRE, {
-    variables: { genre: "All" },
-    skip: true,
-  });
 
   const [selectedGenre, setSelectedGenre] = useState("All");
+
+  const [fetchBooksByGenre, { data: genreBooksData, loading: genreLoading, error: genreError }] =
+    useLazyQuery(GET_BOOKS_BY_GENRE);
 
   useEffect(() => {
     refetchGenres();
@@ -52,10 +51,12 @@ export default function Genres() {
   }, [refetchGenres, refetchAllBooks]);
 
   useEffect(() => {
-    if (selectedGenre !== "All") {
-      refetchBooksByGenre({ genre: selectedGenre });
+    if (selectedGenre === "All") {
+      refetchAllBooks();
+    } else {
+      fetchBooksByGenre({ variables: { genre: selectedGenre } });
     }
-  }, [selectedGenre, refetchBooksByGenre]);
+  }, [selectedGenre, refetchAllBooks, fetchBooksByGenre]);
 
   const genres = genreData?.getAllGenres || [];
   const books = selectedGenre === "All" ? allBooksData?.getAllBooks || [] : genreBooksData?.getBooksByGenre || [];
@@ -84,8 +85,8 @@ export default function Genres() {
           ))}
         </select>
       </div>
-      {loading && <p className="text-gray-600">Loading books...</p>}
-      {error && <p className="text-red-500">Error loading books: {error.message}</p>}
+      {(loading || genreLoading) && <p className="text-gray-600">Loading books...</p>}
+      {(error || genreError) && <p className="text-red-500">Error loading books.</p>}
       {books.length > 0 ? (
         <ul className="w-full flex flex-col items-center space-y-4 px-4">
           {books.map((book) => (
@@ -95,7 +96,7 @@ export default function Genres() {
           ))}
         </ul>
       ) : (
-        !loading && <p className="text-gray-700">No books available.</p>
+        !loading && !genreLoading && <p className="text-gray-700">No books available.</p>
       )}
     </div>
   );
