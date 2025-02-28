@@ -35,8 +35,12 @@ export default function AddBook() {
   
   const { data: authorsData, refetch: refetchAuthors } = useQuery(GET_ALL_AUTHORS);
   const { data: genresData } = useQuery(GET_ALL_GENRES);
-  const [createBook] = useMutation(CREATE_BOOK);
-
+  
+  const [createBook] = useMutation(CREATE_BOOK, {
+    refetchQueries: [{ query: GET_ALL_GENRES }],
+    awaitRefetchQueries: true,
+  });
+  
   useEffect(() => {
     refetchAuthors();
   }, [refetchAuthors]);
@@ -74,7 +78,7 @@ export default function AddBook() {
       setSelectedGenre("");
       setNewGenre("");
       setSelectedAuthorId("");
-      refetchAuthors(); // Refresh authors list after book is added
+      refetchAuthors();
     } catch (err) {
       alert("Error adding book");
     }
@@ -85,16 +89,38 @@ export default function AddBook() {
       <h1 className="text-2xl font-bold mb-4">📘 Add a New Book</h1>
       <span className="block w-96 h-1 bg-teal-400 mx-auto rounded-md mb-6"></span>
       <form onSubmit={submitBook} className="flex flex-col gap-4 w-80">
-        <label className="text-lg">Title:
-          <input value={title} onChange={(e) => setTitle(e.target.value)} type="text" required className="w-full p-2 border rounded border-gray-400" />
+        
+        <label className="text-lg">
+          Title:
+          <input 
+            value={title} 
+            onChange={(e) => setTitle(e.target.value)} 
+            type="text" 
+            required 
+            className="w-full p-2 border rounded border-gray-400" 
+          />
         </label>
 
-        <label className="text-lg">Publication Year:
-          <input value={publicationYear} onChange={(e) => setPublicationYear(e.target.value)} type="number" required className="w-full p-2 border rounded border-gray-400" />
+        <label className="text-lg">
+          Publication Year:
+          <input 
+            value={publicationYear} 
+            onChange={(e) => setPublicationYear(e.target.value)} 
+            type="number" 
+            required 
+            className="w-full p-2 border rounded border-gray-400" 
+          />
         </label>
 
-        <label className="text-lg">Genre:
-          <select value={selectedGenre} onChange={(e) => setSelectedGenre(e.target.value)} required className="w-full p-2 border rounded border-gray-400">
+        <label className="text-lg">
+          Genre:
+          <select 
+            value={selectedGenre} 
+            onChange={(e) => setSelectedGenre(e.target.value)} 
+            required 
+            className="w-full p-2 border rounded border-gray-400"
+          >
+            <option value="">Select a genre</option>
             {reactiveGenres.map((genre) => (
               <option key={genre} value={genre}>{genre}</option>
             ))}
@@ -103,18 +129,38 @@ export default function AddBook() {
         </label>
 
         {selectedGenre === "new" && (
-          <input value={newGenre} onChange={(e) => setNewGenre(e.target.value)} placeholder="New Genre" required className="w-full p-2 border rounded border-gray-400" />
+          <input 
+            value={newGenre} 
+            onChange={(e) => setNewGenre(e.target.value)} 
+            placeholder="New Genre" 
+            required 
+            className="w-full p-2 border rounded border-gray-400" 
+          />
         )}
 
-        <label className="text-lg">Author:
-          <select value={selectedAuthorId} onChange={(e) => setSelectedAuthorId(e.target.value)} required className="w-full p-2 border rounded border-gray-400">
+        {/* Author Dropdown */}
+        <label className="text-lg">
+          Author:
+          <select 
+            value={selectedAuthorId} 
+            onChange={(e) => setSelectedAuthorId(e.target.value)} 
+            required 
+            className="w-full p-2 border rounded border-gray-400"
+          >
+            <option value="">Select an author</option> 
             {authorsData?.getAllAuthors.map((author) => (
               <option key={author.id} value={author.id}>{author.name}</option>
             ))}
           </select>
         </label>
 
-        <button type="submit" disabled={!isValid} className={`p-2 text-white rounded ${isValid ? "bg-red-500 hover:bg-red-600" : "bg-gray-400 cursor-not-allowed"}`}>Add Book</button>
+        <button 
+          type="submit" 
+          disabled={!isValid} 
+          className={`p-2 text-white rounded ${isValid ? "bg-red-500 hover:bg-red-600" : "bg-gray-400 cursor-not-allowed"}`}
+        >
+          Add Book
+        </button>
       </form>
     </div>
   );

@@ -18,12 +18,22 @@ const GET_ALL_BOOKS = gql`
 `;
 
 const SearchView = () => {
-  const { loading, error, data } = useQuery(GET_ALL_BOOKS);
+  const { loading, error, data, refetch } = useQuery(GET_ALL_BOOKS, {
+    fetchPolicy: "network-only",
+  });
+  
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const searchInputRef = useRef(null);
 
+  useEffect(() => {
+    if (refetch) {
+      refetch();
+    }
+  }, [refetch]);
+  
+  
   useEffect(() => {
     if (data) {
       setBooks(data.getAllBooks);
