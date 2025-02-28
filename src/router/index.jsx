@@ -1,13 +1,12 @@
 import { Routes, Route } from 'react-router-dom';
 import HomePage from '../views/Home';
-import SecondPage from '../views/SecondPage';
+import Authors from '../views/Authors';
 
 export function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/second-page" element={<SecondPage />} />
-      <Route path="/authors" element={<SecondPage />} />
+      <Route path="/authors" element={<Authors />} />
     </Routes>
   );
 }

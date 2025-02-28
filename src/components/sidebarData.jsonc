@@ -13,7 +13,7 @@
         {
             "icon": "editor_choice",
             "name": "Authors",
-            "route": "/"
+            "route": "/authors"
         },
         {
             "icon": "comedy_mask", //Was Mystery
