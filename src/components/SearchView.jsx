@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { gql, useQuery } from "@apollo/client";
 import styles from "../styles/components/SearchView.module.css";
 
-// GraphQL query
 const GET_ALL_BOOKS = gql`
   query {
     getAllBooks {
@@ -55,7 +54,7 @@ const SearchView = () => {
 
         <div className={styles['search-input-container']}>
           {!isFocused && (
-            <span className="material-symbols-outlined search-icon">search</span>
+            <span className={`material-symbols-outlined ${styles['search-icon']}`}>search</span>
           )}
           <input
             ref={searchInputRef}
@@ -69,14 +68,13 @@ const SearchView = () => {
           />
           {isFocused && (
             <span
-              className="material-symbols-outlined cancel-icon"
+              className={`material-symbols-outlined ${styles['cancel-icon']}`}
               onClick={clearSearch}
             >
               cancel
             </span>
           )}
         </div>
-
       </div>
 
       <div className={styles['book-list']}>
