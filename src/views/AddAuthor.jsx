@@ -1,52 +1,98 @@
-import { useEffect } from "react";
-import { useQuery, gql } from "@apollo/client";
-import AuthorCard from "../components/AuthorCard";
+import { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
 
-const GET_ALL_AUTHORS = gql`
-  query {
-    getAllAuthors {
+const CREATE_AUTHOR = gql`
+  mutation createAuthor($name: String!, $age: Int!, $nationality: String!) {
+    createAuthor(name: $name, age: $age, nationality: $nationality) {
       id
       name
       age
       nationality
-      books {
-        id
-        title
-        publicationYear
-        genre
-      }
     }
   }
 `;
 
-const AuthorsPage = () => {
-  const { data, loading, error, refetch } = useQuery(GET_ALL_AUTHORS);
+export default function AddAuthor() {
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [nationality, setNationality] = useState("");
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const [createAuthor] = useMutation(CREATE_AUTHOR, {
+    onError: (err) => setError(err.message),
+  });
+
+  const ageError = age !== "" && (age < 10 || age > 110) ? "Age must be between 10 and 110." : "";
+
+  const isValid = name.trim() && age !== "" && age >= 10 && age <= 110 && nationality.trim();
+
+  const submitAuthor = async (e) => {
+    e.preventDefault();
+    if (!isValid) return;
+
+    try {
+      await createAuthor({
+        variables: { name, age: parseInt(age), nationality: nationality.trim() },
+      });
+      alert("Author added successfully!");
+      setName("");
+      setAge("");
+      setNationality("");
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center">
-      <h1 className="pt-4 text-2xl font-bold mb-5 text-gray-800 text-center tracking-wide relative">
-        ✍🏻 Explore Our Authors
-        <span className="block w-96 h-1 bg-red-400 mt-2 mx-auto rounded-md"></span>
-      </h1>
-      
-      {loading && <p className="text-lg text-gray-500">Loading authors...</p>}
-      {error && <p className="text-lg text-red-500">Error loading authors: {error.message}</p>}
-      
-      {data?.getAllAuthors?.length > 0 && (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 justify-center max-w-6xl w-full pb-24">
-          {data.getAllAuthors.map((author) => (
-            <li key={author.id} className="flex justify-center">
-              <AuthorCard name={author.name} details={author} />
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="flex flex-col items-center p-6">
+      <h1 className="text-2xl font-bold mb-4">🖋️ Add a New Author</h1>
+      <span className="block w-96 h-1 bg-teal-400 mx-auto rounded-md mb-6"></span>
+      <form onSubmit={submitAuthor} className="flex flex-col gap-4 w-80">
+        <label className="text-lg">
+          Name:
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            type="text"
+            required
+            className="w-full p-2 border rounded border-gray-400"
+          />
+        </label>
+
+        <label className="text-lg">
+          Age:
+          <input
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            type="number"
+            required
+            className="w-full p-2 border rounded border-gray-400"
+          />
+        </label>
+        {ageError && <p className="text-red-500 text-sm">{ageError}</p>}
+
+        <label className="text-lg">
+          Nationality:
+          <input
+            value={nationality}
+            onChange={(e) => setNationality(e.target.value)}
+            type="text"
+            required
+            className="w-full p-2 border rounded border-gray-400"
+          />
+        </label>
+
+        {error && <p className="text-red-500 text-sm">Error: {error}</p>}
+
+        <button
+          type="submit"
+          disabled={!isValid}
+          className={`p-2 text-white rounded ${isValid ? "bg-red-500 hover:bg-red-600" : "bg-gray-400 cursor-not-allowed"}`}
+        >
+          Add Author
+        </button>
+      </form>
     </div>
   );
-};
-
-export default AuthorsPage;
+}
