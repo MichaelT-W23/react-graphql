@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 
 const GET_ALL_AUTHORS = gql`
-  query {
+  query GetAllAuthors {
     getAllAuthors {
       id
       name
@@ -11,13 +11,13 @@ const GET_ALL_AUTHORS = gql`
 `;
 
 const GET_ALL_GENRES = gql`
-  query {
+  query GetAllGenres {
     getAllGenres
   }
 `;
 
 const CREATE_BOOK = gql`
-  mutation createBook($title: String!, $publicationYear: Int!, $genre: String!, $authorId: Int!) {
+  mutation CreateBook($title: String!, $publicationYear: Int!, $genre: String!, $authorId: Int!) {
     createBook(title: $title, publicationYear: $publicationYear, genre: $genre, authorId: $authorId) {
       id
       title
@@ -33,10 +33,14 @@ export default function AddBook() {
   const [selectedAuthorId, setSelectedAuthorId] = useState("");
   const [reactiveGenres, setReactiveGenres] = useState([]);
   
-  const { data: authorsData } = useQuery(GET_ALL_AUTHORS);
+  const { data: authorsData, refetch: refetchAuthors } = useQuery(GET_ALL_AUTHORS);
   const { data: genresData } = useQuery(GET_ALL_GENRES);
   const [createBook] = useMutation(CREATE_BOOK);
-  
+
+  useEffect(() => {
+    refetchAuthors();
+  }, [refetchAuthors]);
+
   useEffect(() => {
     if (genresData?.getAllGenres) {
       setReactiveGenres([...genresData.getAllGenres]);
@@ -70,6 +74,7 @@ export default function AddBook() {
       setSelectedGenre("");
       setNewGenre("");
       setSelectedAuthorId("");
+      refetchAuthors(); // Refresh authors list after book is added
     } catch (err) {
       alert("Error adding book");
     }
