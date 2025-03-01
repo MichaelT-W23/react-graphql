@@ -22,7 +22,19 @@
   display: flex;
   font-size: 22px;
   font-family: Arial, sans-serif;
+  justify-content: space-between;
   font-weight: 600;
+}
+
+.search-close-icon {
+  font-size: 21px;
+  color: #2c2c2c;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.search-close-icon:hover {
+  color: darkred;
 }
 
 .search-icon {
@@ -35,7 +47,7 @@
 
 .cancel-icon {
   position: absolute;
-  right: 12px; /* Move to the right */
+  right: 12px;
   font-size: 17px;
   color: #555;
   cursor: pointer;

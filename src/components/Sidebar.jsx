@@ -24,6 +24,12 @@ const Sidebar = () => {
     }
   };
 
+  const handleCloseSearch = () => {
+    setShowSearch(false);
+    setCollapsed(false);
+    setSelectedItem(null);
+  };
+
   return (
     <div className={styles["sidebar-container"]}>
       <div className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
@@ -49,7 +55,7 @@ const Sidebar = () => {
           </ul>
         </nav>
         <div className={`${styles["search-container"]} ${showSearch ? styles["search-open"] : styles["search-closed"]}`}>
-          {showSearch && <SearchView onClose={() => setShowSearch(false)} />}
+          {showSearch && <SearchView onClose={handleCloseSearch} />}
         </div>
       </div>
       

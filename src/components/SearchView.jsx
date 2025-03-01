@@ -11,7 +11,6 @@ const GET_ALL_BOOKS = gql`
       publicationYear
       genre
       author {
-        id
         name
       }
     }
@@ -75,6 +74,12 @@ const SearchView = ({ onClose }) => {
       <div className={styles['search-section']}>
         <div className={styles['search-header']}>
           <p>Search</p>
+          <span 
+            className={`material-symbols-outlined ${styles['search-close-icon']}`}
+            onClick={onClose}
+          >
+            close
+          </span>
         </div>
 
         <div className={styles['search-input-container']}>
