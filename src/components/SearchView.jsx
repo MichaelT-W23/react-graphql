@@ -50,7 +50,6 @@ const SearchView = ({ onClose }) => {
     setSearchTerm("");
     setIsFocused(false);
     searchInputRef.current?.blur();
-    onClose();
   };
 
   useEffect(() => {
