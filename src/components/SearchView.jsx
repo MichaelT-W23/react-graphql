@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { gql, useQuery } from "@apollo/client";
+import PropTypes from "prop-types";
 import styles from "../styles/components/SearchView.module.css";
 
 const GET_ALL_BOOKS = gql`
@@ -17,23 +18,23 @@ const GET_ALL_BOOKS = gql`
   }
 `;
 
-const SearchView = () => {
+const SearchView = ({ onClose }) => {
   const { loading, error, data, refetch } = useQuery(GET_ALL_BOOKS, {
     fetchPolicy: "network-only",
   });
-  
+
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const searchInputRef = useRef(null);
+  const searchContainerRef = useRef(null);
 
   useEffect(() => {
     if (refetch) {
       refetch();
     }
   }, [refetch]);
-  
-  
+
   useEffect(() => {
     if (data) {
       setBooks(data.getAllBooks);
@@ -50,13 +51,27 @@ const SearchView = () => {
     setSearchTerm("");
     setIsFocused(false);
     searchInputRef.current?.blur();
+    onClose();
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        onClose(); 
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
 
   if (loading) return <p>Loading books...</p>;
   if (error) return <p>Error loading books: {error.message}</p>;
 
   return (
-    <div className={styles['search-view']}>
+    <div ref={searchContainerRef} className={styles['search-view']}>
       <div className={styles['search-section']}>
         <div className={styles['search-header']}>
           <p>Search</p>
@@ -103,6 +118,10 @@ const SearchView = () => {
       </div>
     </div>
   );
+};
+
+SearchView.propTypes = {
+  onClose: PropTypes.func.isRequired
 };
 
 export default SearchView;

@@ -49,7 +49,7 @@ const Sidebar = () => {
           </ul>
         </nav>
         <div className={`${styles["search-container"]} ${showSearch ? styles["search-open"] : styles["search-closed"]}`}>
-          {showSearch && <SearchView />}
+          {showSearch && <SearchView onClose={() => setShowSearch(false)} />}
         </div>
       </div>
       
