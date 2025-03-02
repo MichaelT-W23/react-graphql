@@ -9,7 +9,7 @@ import './index.css';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ApolloProvider client={apolloClient}>
-      <BrowserRouter>
+      <BrowserRouter basename="/react-graphql">
         <App />
       </BrowserRouter>
     </ApolloProvider>
