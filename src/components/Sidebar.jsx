@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { parse } from "jsonc-parser";
 import sidebarRawData from "./sidebarData.jsonc?raw";
 import SearchView from "./SearchView";
@@ -8,9 +8,15 @@ import styles from "../styles/components/Sidebar.module.css";
 const sidebarData = parse(sidebarRawData);
 
 const Sidebar = () => {
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  useEffect(() => {
+    const currentItem = sidebarData.SidebarItems.find(item => item.route === location.pathname);
+    setSelectedItem(currentItem ? currentItem.name : null);
+  }, [location.pathname]);
 
   const handleNavClick = (item) => {
     setSelectedItem(item.name);
@@ -43,7 +49,7 @@ const Sidebar = () => {
                   className={`${styles["sidebar-link"]} 
                               ${item.name === selectedItem ? styles["active-item"] : ""} 
                               ${item.name === "Search" && showSearch ? styles["active-search"] : ""}`}
-                  onClick={(event) => handleNavClick(item, event)}
+                  onClick={() => handleNavClick(item)}
                 >
                   <span className={`material-symbols-outlined ${item.name === selectedItem ? styles["active-icon"] : ""}`}>
                     {item.icon}
