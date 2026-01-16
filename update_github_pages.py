@@ -72,9 +72,15 @@ def ensure(path: str, label: str):
 
 
 def force_clean_worktree(path: str):
-    sh(f"git worktree remove {path} --force || true")
-    sh("git worktree prune || true")
-    sh(f"rm -rf {path}")
+    path = abspath(path)
+
+    # Try git removal first
+    sh(f"git worktree remove {path} --force", critical=False)
+    sh("git worktree prune", critical=False)
+
+    # Then nuke it
+    if os.path.exists(path):
+        sh(f"rm -rf {path}", critical=True)
 
     if os.path.exists(path):
         print(c(f"❌ Could not remove {path}. Aborting.", "red"))
@@ -82,7 +88,13 @@ def force_clean_worktree(path: str):
 
 
 def ensure_deploy_worktree(dep: str):
-    # Try remote branch first (most reliable)
+    dep = abspath(dep)
+
+    if os.path.exists(dep):
+        print(c(f"❌ Deploy path already exists: {dep}", "red"))
+        sys.exit(1)
+
+    # Try remote branch
     sh(f"git worktree add {dep} origin/gh-pages", critical=False)
 
     if os.path.isdir(os.path.join(dep, ".git")):
@@ -112,9 +124,12 @@ def main():
         print(c("❌ Not in a git repo.", "red"))
         sys.exit(1)
 
+    BUILD = abspath(BUILD_TREE)
+    DEPLOY = abspath(DEPLOY_TREE)
+
     # Hard safety: worktrees must be outside repo
-    assert_outside_repo(root, BUILD_TREE, "BUILD_TREE")
-    assert_outside_repo(root, DEPLOY_TREE, "DEPLOY_TREE")
+    assert_outside_repo(root, BUILD, "BUILD_TREE")
+    assert_outside_repo(root, DEPLOY, "DEPLOY_TREE")
 
     msg = input("Commit message (main): ").strip() or "Update"
 
@@ -126,56 +141,56 @@ def main():
 
     # ---- Build in isolated detached worktree ----
     print(c("• Preparing isolated build tree…", "cyan"))
-    force_clean_worktree(BUILD_TREE)
-    sh(f"git worktree add --detach {BUILD_TREE}", critical=True)
+    force_clean_worktree(BUILD)
+    sh(f"git worktree add --detach {BUILD}", critical=True)
 
     print(c("• Installing deps in build tree…", "cyan"))
-    sh(f"cd {BUILD_TREE} && npm ci || npm install", critical=True)
+    sh(f"cd {BUILD} && npm ci || npm install", critical=True)
 
     print(c("• Building…", "cyan"))
-    sh(f"cd {BUILD_TREE} && npm run build", critical=True, quiet=False)
+    sh(f"cd {BUILD} && npm run build", critical=True, quiet=False)
 
     # ---- Verify build ----
     print(c("• Verifying build…", "cyan"))
-    ensure(f"{BUILD_TREE}/dist", "dist directory")
-    ensure(f"{BUILD_TREE}/dist/index.html", "dist/index.html")
-    ensure(f"{BUILD_TREE}/dist/assets", "dist/assets directory")
+    ensure(f"{BUILD}/dist", "dist directory")
+    ensure(f"{BUILD}/dist/index.html", "dist/index.html")
+    ensure(f"{BUILD}/dist/assets", "dist/assets directory")
 
-    assets = os.listdir(f"{BUILD_TREE}/dist/assets")
+    assets = os.listdir(f"{BUILD}/dist/assets")
     js_files = [f for f in assets if f.endswith(".js")]
     if not js_files:
         print(c("❌ Build verification failed: no JS bundle found", "red"))
         sys.exit(1)
 
     # SPA fallback + CNAME
-    sh(f"cp {BUILD_TREE}/dist/index.html {BUILD_TREE}/dist/404.html", critical=True)
-    sh(f'echo "{CNAME_DOMAIN}" > {BUILD_TREE}/dist/CNAME', critical=True)
+    sh(f"cp {BUILD}/dist/index.html {BUILD}/dist/404.html", critical=True)
+    sh(f'echo "{CNAME_DOMAIN}" > {BUILD}/dist/CNAME', critical=True)
 
     # ---- Deploy via gh-pages worktree ----
     print(c("• Preparing deploy tree…", "cyan"))
-    force_clean_worktree(DEPLOY_TREE)
-    ensure_deploy_worktree(DEPLOY_TREE)
+    force_clean_worktree(DEPLOY)
+    ensure_deploy_worktree(DEPLOY)
 
-    if not os.path.isdir(os.path.join(DEPLOY_TREE, ".git")):
+    if not os.path.isdir(os.path.join(DEPLOY, ".git")):
         print(c("❌ Deploy tree is not a git repo. Aborting.", "red"))
         sys.exit(1)
 
     print(c("• Deploying to gh-pages…", "cyan"))
 
-    sh(f"cd {DEPLOY_TREE} && git fetch origin gh-pages", critical=True)
-    sh(f"cd {DEPLOY_TREE} && git reset --hard origin/gh-pages", critical=True)
+    sh(f"cd {DEPLOY} && git fetch origin gh-pages", critical=False)
+    sh(f"cd {DEPLOY} && git reset --hard origin/gh-pages", critical=False)
 
     # Safe wipe
-    sh(f"find {DEPLOY_TREE} -mindepth 1 -maxdepth 1 -exec rm -rf {{}} +", critical=True)
-    sh(f"cp -R {BUILD_TREE}/dist/. {DEPLOY_TREE}/", critical=True)
+    sh(f"find {DEPLOY} -mindepth 1 -maxdepth 1 -exec rm -rf {{}} +", critical=True)
+    sh(f"cp -R {BUILD}/dist/. {DEPLOY}/", critical=True)
 
-    sh(f"cd {DEPLOY_TREE} && git add .", critical=True)
-    sh(f'cd {DEPLOY_TREE} && git commit -m "Deploy" || true', critical=False)
-    sh(f"cd {DEPLOY_TREE} && git push origin gh-pages", critical=True)
+    sh(f"cd {DEPLOY} && git add .", critical=True)
+    sh(f'cd {DEPLOY} && git commit -m "Deploy" || true', critical=False)
+    sh(f"cd {DEPLOY} && git push origin gh-pages", critical=True)
 
     # ---- Cleanup ----
-    force_clean_worktree(BUILD_TREE)
-    force_clean_worktree(DEPLOY_TREE)
+    force_clean_worktree(BUILD)
+    force_clean_worktree(DEPLOY)
 
     print(c("✅ Deploy complete. Main branch untouched.", "green"))
 
