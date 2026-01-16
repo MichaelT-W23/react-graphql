@@ -60,7 +60,7 @@ def main():
     # --- Prepare isolated build worktree ---
     print(c("• Preparing isolated build tree…", "cyan"))
     force_clean_worktree(BUILD_TREE)
-    sh(f"git worktree add {BUILD_TREE} main", critical=True)
+    sh(f"git worktree add --detach {BUILD_TREE}", critical=True)
 
     # --- Build inside the temp tree ---
     print(c("• Building…", "cyan"))
