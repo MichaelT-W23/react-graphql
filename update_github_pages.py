@@ -159,7 +159,6 @@ def ensure_deploy_worktree(dep: str):
 
 
 def main():
-    print(c(f"update_github_pages.py v{VERSION}", "cyan"))
 
     # ---- Safety: must run from main branch ----
     branch = get_branch()
