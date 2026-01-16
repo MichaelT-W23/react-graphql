@@ -3,13 +3,23 @@ import subprocess
 import sys
 from termcolor import colored as c
 
+# ====== CONFIG ======
 CNAME_DOMAIN = "react.bookql.com"
 
-# These MUST be outside the repo directory
+# IMPORTANT: worktrees must be OUTSIDE the repo folder
+# and the build worktree must NOT checkout 'main' (use --detach)
 BUILD_TREE = "../.build-temp-react"
 DEPLOY_TREE = "../.gh-pages-temp-react"
 
+# Optional: set to True if you want to see command output (except npm build which is always shown)
+DEBUG = False
+
+# ====================
+
 def sh(cmd: str, critical: bool = False, quiet: bool = True):
+    if DEBUG:
+        quiet = False
+
     if not quiet:
         print(c(f"> {cmd}", "cyan"))
         code = os.system(cmd)
@@ -34,8 +44,10 @@ def ensure(path: str, label: str):
         sys.exit(1)
 
 def force_clean_worktree(path: str):
+    # remove from git's worktree list (if it is one)
     sh(f"git worktree remove {path} --force || true")
     sh("git worktree prune || true")
+    # remove filesystem path no matter what it is
     sh(f"rm -rf {path}")
 
     if os.path.exists(path):
@@ -43,7 +55,7 @@ def force_clean_worktree(path: str):
         sys.exit(1)
 
 def main():
-    # --- Safety: must be on main ---
+    # ---- Safety: must run from main branch ----
     branch = get_branch()
     if branch != "main":
         print(c(f"❌ You are on '{branch}'. Switch to 'main' before deploying.", "red"))
@@ -51,57 +63,59 @@ def main():
 
     msg = input("Commit message (main): ").strip() or "Update"
 
-    # --- Commit source ---
+    # ---- Commit source ----
     print(c("• Committing source…", "cyan"))
     sh("git add .", critical=True)
     sh(f'git commit -m "{msg}" || true', critical=True)
     sh("git push origin main", critical=True)
 
-    # --- Prepare isolated build worktree ---
+    # ---- Build in isolated detached worktree ----
     print(c("• Preparing isolated build tree…", "cyan"))
     force_clean_worktree(BUILD_TREE)
+
+    # NOTE: --detach avoids trying to checkout main twice
     sh(f"git worktree add --detach {BUILD_TREE}", critical=True)
 
-    # --- Build inside the temp tree ---
-    print(c("• Building…", "cyan"))
-    sh(f"cd {BUILD_TREE} && npm run build", critical=True, quiet=False)
+    print(c("• Installing deps in build tree…", "cyan"))
+    sh(f"cd {BUILD_TREE} && npm ci || npm install", critical=True)
 
-    # --- Verify build ---
+    print(c("• Building…", "cyan"))
+    sh(f"cd {BUILD_TREE} && npm run build", critical=True, quiet=False)  # always show build output
+
+    # ---- Verify build ----
     print(c("• Verifying build…", "cyan"))
     ensure(f"{BUILD_TREE}/dist", "dist directory")
-    ensure(f"{BUILD_TREE}/dist/index.html", "index.html")
-    ensure(f"{BUILD_TREE}/dist/assets", "assets directory")
+    ensure(f"{BUILD_TREE}/dist/index.html", "dist/index.html")
+    ensure(f"{BUILD_TREE}/dist/assets", "dist/assets directory")
 
     assets = os.listdir(f"{BUILD_TREE}/dist/assets")
     js_files = [f for f in assets if f.endswith(".js")]
-
     if not js_files:
-        print(c("❌ No JS bundle found in dist/assets", "red"))
+        print(c("❌ Build verification failed: no .js bundle in dist/assets", "red"))
         sys.exit(1)
 
-    # --- SPA + CNAME ---
+    # SPA fallback + CNAME
     sh(f"cp {BUILD_TREE}/dist/index.html {BUILD_TREE}/dist/404.html", critical=True)
     sh(f'echo "{CNAME_DOMAIN}" > {BUILD_TREE}/dist/CNAME', critical=True)
 
-    # --- Prepare deploy tree ---
+    # ---- Deploy via gh-pages worktree ----
     print(c("• Preparing deploy tree…", "cyan"))
     force_clean_worktree(DEPLOY_TREE)
 
+    # If gh-pages exists, use it; if not, create orphan gh-pages
     sh(f"git worktree add {DEPLOY_TREE} gh-pages", critical=False)
-
     if not os.path.isdir(DEPLOY_TREE):
         sh(f"git worktree add {DEPLOY_TREE} --orphan gh-pages", critical=True)
 
-    # --- Replace contents ---
+    print(c("• Deploying to gh-pages…", "cyan"))
     sh(f"rm -rf {DEPLOY_TREE}/*", critical=True)
     sh(f"cp -r {BUILD_TREE}/dist/* {DEPLOY_TREE}/", critical=True)
 
-    # --- Commit + push ---
     sh(f"cd {DEPLOY_TREE} && git add .", critical=True)
-    sh(f'cd {DEPLOY_TREE} && git commit -m "Deploy"', critical=False)
+    sh(f'cd {DEPLOY_TREE} && git commit -m "Deploy" || true', critical=False)
     sh(f"cd {DEPLOY_TREE} && git push -f origin HEAD:gh-pages", critical=True)
 
-    # --- Cleanup ---
+    # ---- Cleanup ----
     force_clean_worktree(BUILD_TREE)
     force_clean_worktree(DEPLOY_TREE)
 
