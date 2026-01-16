@@ -236,10 +236,12 @@ def main():
     print(c("• Preparing deploy tree…", "cyan"))
     force_clean_worktree(DEPLOY)
     ensure_deploy_worktree(DEPLOY)
-
-    if not os.path.isdir(os.path.join(DEPLOY, ".git")):
+    
+    git_marker = os.path.join(DEPLOY, ".git")
+    if not os.path.exists(git_marker):
         print(c("❌ Deploy tree is not a git repo. Aborting.", "red"))
         sys.exit(1)
+
 
     print(c("• Deploying to gh-pages…", "cyan"))
 
