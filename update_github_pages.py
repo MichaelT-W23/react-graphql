@@ -39,6 +39,8 @@ run('npm run build')
 # SPA fallback
 run('cp dist/index.html dist/404.html')
 
+run('echo "react.bookql.com" > dist/CNAME')
+
 # Deploy using split + force
 run('git subtree split --prefix dist -b temp-gh-pages')
 run('git push -f origin temp-gh-pages:gh-pages')
