@@ -4,8 +4,10 @@ import sys
 from termcolor import colored as c
 
 CNAME_DOMAIN = "react.bookql.com"
-BUILD_TREE = ".build-temp"
-DEPLOY_TREE = ".gh-pages-temp"
+
+# These MUST be outside the repo directory
+BUILD_TREE = "../.build-temp-react"
+DEPLOY_TREE = "../.gh-pages-temp-react"
 
 def sh(cmd: str, critical: bool = False, quiet: bool = True):
     if not quiet:
