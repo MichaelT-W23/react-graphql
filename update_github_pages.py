@@ -251,7 +251,7 @@ def main():
         sh(f"cd '{DEPLOY}' && git reset --hard origin/gh-pages", critical=False)
 
     # Safe wipe (inside DEPLOY only)
-    sh(f"find '{DEPLOY}' -mindepth 1 -maxdepth 1 -exec rm -rf {{}} +", critical=True)
+    sh(f"find '{DEPLOY}' -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {{}} +", critical=True)
     sh(f"cp -R '{BUILD}/dist/.' '{DEPLOY}/'", critical=True)
 
     sh(f"cd '{DEPLOY}' && git add .", critical=True)
