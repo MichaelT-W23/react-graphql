@@ -74,24 +74,26 @@ def ensure(path: str, label: str):
 def force_clean_worktree(path: str):
     path = abspath(path)
 
-    # Try git removal first
     sh(f"git worktree remove {path} --force", critical=False)
     sh("git worktree prune", critical=False)
 
-    # Then nuke it
+    # Nuclear option
     if os.path.exists(path):
         sh(f"rm -rf {path}", critical=True)
 
     if os.path.exists(path):
-        print(c(f"❌ Could not remove {path}. Aborting.", "red"))
+        print(c(f"❌ Could not delete {path}.", "red"))
+        print(c("   Close Finder windows, shells, or editors using it.", "red"))
         sys.exit(1)
 
 
 def ensure_deploy_worktree(dep: str):
     dep = abspath(dep)
 
+    # Hard stop if directory exists
     if os.path.exists(dep):
         print(c(f"❌ Deploy path already exists: {dep}", "red"))
+        print(c("   This should never happen. Aborting to prevent corruption.", "red"))
         sys.exit(1)
 
     # Try remote branch
