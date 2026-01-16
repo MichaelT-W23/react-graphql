@@ -246,6 +246,7 @@ def main():
     sh(f"cp -R '{BUILD}/dist/.' '{DEPLOY}/'", critical=True)
 
     sh(f"cd '{DEPLOY}' && git add .", critical=True)
+    sh(f"cd '{DEPLOY}' && git status --porcelain", critical=False, quiet=False)
     sh(f"cd '{DEPLOY}' && git commit -m 'Deploy' || true", critical=False)
     sh(f"cd '{DEPLOY}' && git push origin gh-pages", critical=True)
 
