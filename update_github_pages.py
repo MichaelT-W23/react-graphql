@@ -113,7 +113,7 @@ def main():
 
     sh(f"cd {DEPLOY_TREE} && git add .", critical=True)
     sh(f'cd {DEPLOY_TREE} && git commit -m "Deploy" || true', critical=False)
-    sh(f"cd {DEPLOY_TREE} && git push -f origin HEAD:gh-pages", critical=True)
+    sh(f"cd {DEPLOY_TREE} && git push origin gh-pages", critical=True)
 
     # ---- Cleanup ----
     force_clean_worktree(BUILD_TREE)
