@@ -95,11 +95,9 @@ def ensure_deploy_worktree(dep: str):
         return
 
     # Last resort: orphan
-    sh(f"git worktree add {dep} --orphan gh-pages", critical=True)
-
-    if not os.path.isdir(os.path.join(dep, ".git")):
-        print(c(f"❌ Deploy tree created but is not a git repo: {dep}", "red"))
-        sys.exit(1)
+    sh(f"git worktree add --detach {dep}", critical=True)
+    sh(f"cd {dep} && git switch --orphan gh-pages", critical=True)
+    sh(f"cd {dep} && git rm -rf .", critical=False)
 
 
 def main():
