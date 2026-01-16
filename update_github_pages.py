@@ -177,7 +177,6 @@ def main():
         print(c("❌ Deploy tree is not a git repo. Aborting.", "red"))
         sys.exit(1)
 
-    # Deploy
     print(c("• Deploying to gh-pages…", "cyan"))
 
     sh(f"cd {DEPLOY} && git fetch origin gh-pages", critical=False)
