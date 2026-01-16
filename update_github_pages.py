@@ -49,7 +49,11 @@ def main():
     # --- Create isolated build worktree ---
     print(c("• Building in isolated worktree…", "cyan"))
     sh(f"git worktree remove {BUILD_TREE} --force || true")
+    sh("git worktree prune || true")
+    sh(f"rm -rf {BUILD_TREE}")
+
     sh(f"git worktree add {BUILD_TREE} main", critical=True)
+
 
     # --- Build inside the temp tree ---
     sh(f"cd {BUILD_TREE} && npm install", critical=True)
