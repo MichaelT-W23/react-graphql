@@ -4,18 +4,14 @@ import sys
 from termcolor import colored as c
 
 CNAME_DOMAIN = "react.bookql.com"
-TEMP_DIR = ".gh-pages-temp"
+BUILD_TREE = ".build-temp"
+DEPLOY_TREE = ".gh-pages-temp"
 
-def sh(cmd: str, critical: bool = False, quiet: bool = True) -> None:
-    """
-    Run a shell command.
-    - quiet=True suppresses stdout/stderr (unless it fails and critical=False you'd still not see it).
-    """
+def sh(cmd: str, critical: bool = False, quiet: bool = True):
     if not quiet:
         print(c(f"> {cmd}", "cyan"))
         code = os.system(cmd)
     else:
-        # suppress output; still preserve exit code
         code = os.system(f"{cmd} > /dev/null 2>&1")
 
     if critical and code != 0:
@@ -23,69 +19,80 @@ def sh(cmd: str, critical: bool = False, quiet: bool = True) -> None:
         sys.exit(1)
 
 def get_branch() -> str:
-    p = subprocess.run("git branch --show-current", shell=True, capture_output=True, text=True)
-    return p.stdout.strip()
+    return subprocess.run(
+        "git branch --show-current",
+        shell=True,
+        capture_output=True,
+        text=True
+    ).stdout.strip()
 
-def ensure_file_exists(path: str, label: str) -> None:
+def ensure(path: str, label: str):
     if not os.path.exists(path):
         print(c(f"❌ Missing {label}: {path}", "red"))
         sys.exit(1)
 
-def main() -> None:
+def main():
+    # --- Safety: must be on main ---
     branch = get_branch()
     if branch != "main":
         print(c(f"❌ You are on '{branch}'. Switch to 'main' before deploying.", "red"))
         sys.exit(1)
 
-    commit_msg = input("Commit message (main): ").strip() or "Update"
+    msg = input("Commit message (main): ").strip() or "Update"
 
-    # --- Commit source (main) ---
-    print(c("• Committing source (main)…", "cyan"))
+    # --- Commit source ---
+    print(c("• Committing source…", "cyan"))
     sh("git add .", critical=True)
-    sh(f'git commit -m "{commit_msg}" || true', critical=True)  # 'true' to avoid failing on "nothing to commit"
+    sh(f'git commit -m "{msg}" || true', critical=True)
     sh("git push origin main", critical=True)
 
-    # --- Build ---
-    print(c("• Building…", "cyan"))
-    sh("npm run build", critical=True, quiet=False)  # show build output (useful)
+    # --- Create isolated build worktree ---
+    print(c("• Building in isolated worktree…", "cyan"))
+    sh(f"git worktree remove {BUILD_TREE} --force || true")
+    sh(f"git worktree add {BUILD_TREE}", critical=True)
 
-    # --- Verify build output ---
-    print(c("• Verifying build…", "cyan"))
-    ensure_file_exists("dist", "dist directory")
-    ensure_file_exists("dist/index.html", "dist/index.html")
-    ensure_file_exists("dist/assets", "dist/assets directory")
+    # --- Build inside the temp tree ---
+    sh(f"cd {BUILD_TREE} && npm install", critical=True)
+    sh(f"cd {BUILD_TREE} && npm run build", critical=True, quiet=False)
 
-    assets = os.listdir("dist/assets")
+    # --- Verify build ---
+    ensure(f"{BUILD_TREE}/dist", "dist directory")
+    ensure(f"{BUILD_TREE}/dist/index.html", "index.html")
+    ensure(f"{BUILD_TREE}/dist/assets", "assets directory")
+
+    assets = os.listdir(f"{BUILD_TREE}/dist/assets")
     js_files = [f for f in assets if f.endswith(".js")]
+
     if not js_files:
-        print(c("❌ Build verification failed: no .js bundle in dist/assets", "red"))
+        print(c("❌ No JS bundle found in dist/assets", "red"))
         sys.exit(1)
 
-    # SPA fallback + CNAME
-    sh("cp dist/index.html dist/404.html", critical=True)
-    sh(f'echo "{CNAME_DOMAIN}" > dist/CNAME', critical=True)
+    # --- SPA + CNAME ---
+    sh(f"cp {BUILD_TREE}/dist/index.html {BUILD_TREE}/dist/404.html", critical=True)
+    sh(f'echo "{CNAME_DOMAIN}" > {BUILD_TREE}/dist/CNAME', critical=True)
 
-    # --- Deploy using worktree (does NOT touch node_modules or working tree) ---
+    # --- Create isolated deploy worktree ---
     print(c("• Deploying to gh-pages…", "cyan"))
-    sh(f"git worktree remove {TEMP_DIR} --force || true", critical=True)
-    # If gh-pages exists, check it out; otherwise create orphan worktree
-    sh(f"git worktree add {TEMP_DIR} gh-pages", critical=False)
-    if not os.path.isdir(TEMP_DIR):
-        sh(f"git worktree add {TEMP_DIR} --orphan gh-pages", critical=True)
+    sh(f"git worktree remove {DEPLOY_TREE} --force || true")
+    sh(f"git worktree add {DEPLOY_TREE} gh-pages", critical=False)
 
-    # Replace contents
-    sh(f"rm -rf {TEMP_DIR}/*", critical=True)
-    sh(f"cp -r dist/* {TEMP_DIR}/", critical=True)
+    if not os.path.isdir(DEPLOY_TREE):
+        sh(f"git worktree add {DEPLOY_TREE} --orphan gh-pages", critical=True)
 
-    # Commit + push
-    sh(f'cd {TEMP_DIR} && git add .', critical=True)
-    sh(f'cd {TEMP_DIR} && git commit -m "Deploy"', critical=False)  # allow "nothing to commit"
-    sh(f"cd {TEMP_DIR} && git push -f origin HEAD:gh-pages", critical=True)
+    # --- Replace contents ---
+    sh(f"rm -rf {DEPLOY_TREE}/*", critical=True)
+    sh(f"cp -r {BUILD_TREE}/dist/* {DEPLOY_TREE}/", critical=True)
 
-    # Cleanup worktree
-    sh(f"git worktree remove {TEMP_DIR} --force", critical=True)
+    # --- Commit + push ---
+    sh(f"cd {DEPLOY_TREE} && git add .", critical=True)
+    sh(f'cd {DEPLOY_TREE} && git commit -m "Deploy"', critical=False)
+    sh(f"cd {DEPLOY_TREE} && git push -f origin HEAD:gh-pages", critical=True)
 
-    print(c("✅ Done. Site deployed.", "green"))
+    # --- Cleanup ---
+    sh(f"git worktree remove {BUILD_TREE} --force", critical=True)
+    sh(f"git worktree remove {DEPLOY_TREE} --force", critical=True)
+
+    print(c("✅ Deploy complete. Main branch untouched.", "green"))
 
 if __name__ == "__main__":
     main()
