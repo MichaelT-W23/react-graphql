@@ -8,7 +8,7 @@ import atexit
 from termcolor import colored as c
 
 # ====== CONFIG ======
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 CNAME_DOMAIN = "react.bookql.com"
 
 # Base names (actual paths become unique per run)
@@ -150,7 +150,7 @@ def ensure_deploy_worktree(dep: str):
     if git_has_remote_branch("gh-pages"):
         if not git_has_local_branch("gh-pages"):
             sh("git fetch origin gh-pages", critical=True)
-            sh("git branch gh-pages origin/gh-pages", critical=False)  # may already exist
+            sh("git branch gh-pages origin/gh-pages", critical=False)  # ok if already exists
         sh(f"git worktree add '{dep}' gh-pages", critical=True)
         return
 
@@ -163,6 +163,19 @@ def ensure_deploy_worktree(dep: str):
     sh(f"git worktree add --detach '{dep}'", critical=True)
     sh(f"cd '{dep}' && git switch --orphan gh-pages", critical=True)
     sh(f"cd '{dep}' && git rm -rf .", critical=False)
+
+
+def deploy_verify_root(deploy_dir: str):
+    def ensure_deploy_file(path: str, label: str):
+        if not os.path.exists(path):
+            print(c(f"❌ Deploy verification failed: missing {label}", "red"))
+            print(c(f"   Path: {path}", "red"))
+            sys.exit(1)
+
+    ensure_deploy_file(os.path.join(deploy_dir, "index.html"), "index.html")
+    ensure_deploy_file(os.path.join(deploy_dir, "assets"), "assets/")
+    ensure_deploy_file(os.path.join(deploy_dir, "CNAME"), "CNAME")
+    ensure_deploy_file(os.path.join(deploy_dir, ".nojekyll"), ".nojekyll")
 
 
 def main():
@@ -215,7 +228,7 @@ def main():
     print(c("• Building…", "cyan"))
     sh(f"cd '{BUILD}' && npm run build", critical=True, quiet=False)
 
-    # ---- Verify ----
+    # ---- Verify build output ----
     print(c("• Verifying build…", "cyan"))
     ensure(f"{BUILD}/dist", "dist directory")
     ensure(f"{BUILD}/dist/index.html", "dist/index.html")
@@ -252,19 +265,42 @@ def main():
 
     print(c("• Deploying to gh-pages…", "cyan"))
 
+    # Sync to remote gh-pages if it exists
     if git_has_remote_branch("gh-pages"):
-        sh(f"cd '{DEPLOY}' && git fetch origin gh-pages", critical=False)
-        sh(f"cd '{DEPLOY}' && git reset --hard origin/gh-pages", critical=False)
+        sh(f"cd '{DEPLOY}' && git fetch origin gh-pages", critical=True)
+        sh(f"cd '{DEPLOY}' && git reset --hard origin/gh-pages", critical=True)
+
+    # Preserve existing CNAME if present (prevents Pages UI from "forgetting" domain)
+    existing_cname = None
+    cname_path = os.path.join(DEPLOY, "CNAME")
+    if os.path.exists(cname_path):
+        try:
+            with open(cname_path, "r") as f:
+                existing_cname = f.read().strip()
+        except Exception:
+            existing_cname = None
 
     # Safe wipe (preserve .git)
     sh(f"find '{DEPLOY}' -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {{}} +", critical=True)
+
+    # Copy new build output
     sh(f"cp -R '{BUILD}/dist/.' '{DEPLOY}/'", critical=True)
+
+    # Enforce CNAME (prefer existing if present, else configured)
+    final_domain = existing_cname or CNAME_DOMAIN
+    sh(f'echo "{final_domain}" > "{DEPLOY}/CNAME"', critical=True)
+
+    # Prevent Jekyll interference
+    sh(f"touch '{DEPLOY}/.nojekyll'", critical=True)
+
+    # Verify publish root contents before committing/pushing
+    deploy_verify_root(DEPLOY)
 
     sh(f"cd '{DEPLOY}' && git add .", critical=True)
     sh(f"cd '{DEPLOY}' && git status --porcelain", critical=False, quiet=False)
     sh(f"cd '{DEPLOY}' && git commit -m 'Deploy' || true", critical=False)
 
-    # PUSH THE BRANCH TIP (not detached HEAD)
+    # Push the branch tip (not detached)
     sh(f"cd '{DEPLOY}' && git push origin gh-pages:gh-pages", critical=True)
 
     # ---- Cleanup ----
