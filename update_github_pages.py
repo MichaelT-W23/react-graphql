@@ -31,6 +31,15 @@ def ensure(path: str, label: str):
         print(c(f"❌ Missing {label}: {path}", "red"))
         sys.exit(1)
 
+def force_clean_worktree(path: str):
+    sh(f"git worktree remove {path} --force || true")
+    sh("git worktree prune || true")
+    sh(f"rm -rf {path}")
+
+    if os.path.exists(path):
+        print(c(f"❌ Could not remove {path}. Aborting.", "red"))
+        sys.exit(1)
+
 def main():
     # --- Safety: must be on main ---
     branch = get_branch()
@@ -46,20 +55,17 @@ def main():
     sh(f'git commit -m "{msg}" || true', critical=True)
     sh("git push origin main", critical=True)
 
-    # --- Create isolated build worktree ---
-    print(c("• Building in isolated worktree…", "cyan"))
-    sh(f"git worktree remove {BUILD_TREE} --force || true")
-    sh("git worktree prune || true")
-    sh(f"rm -rf {BUILD_TREE}")
-
+    # --- Prepare isolated build worktree ---
+    print(c("• Preparing isolated build tree…", "cyan"))
+    force_clean_worktree(BUILD_TREE)
     sh(f"git worktree add {BUILD_TREE} main", critical=True)
 
-
     # --- Build inside the temp tree ---
-    sh(f"cd {BUILD_TREE} && npm install", critical=True)
+    print(c("• Building…", "cyan"))
     sh(f"cd {BUILD_TREE} && npm run build", critical=True, quiet=False)
 
     # --- Verify build ---
+    print(c("• Verifying build…", "cyan"))
     ensure(f"{BUILD_TREE}/dist", "dist directory")
     ensure(f"{BUILD_TREE}/dist/index.html", "index.html")
     ensure(f"{BUILD_TREE}/dist/assets", "assets directory")
@@ -75,9 +81,10 @@ def main():
     sh(f"cp {BUILD_TREE}/dist/index.html {BUILD_TREE}/dist/404.html", critical=True)
     sh(f'echo "{CNAME_DOMAIN}" > {BUILD_TREE}/dist/CNAME', critical=True)
 
-    # --- Create isolated deploy worktree ---
-    print(c("• Deploying to gh-pages…", "cyan"))
-    sh(f"git worktree remove {DEPLOY_TREE} --force || true")
+    # --- Prepare deploy tree ---
+    print(c("• Preparing deploy tree…", "cyan"))
+    force_clean_worktree(DEPLOY_TREE)
+
     sh(f"git worktree add {DEPLOY_TREE} gh-pages", critical=False)
 
     if not os.path.isdir(DEPLOY_TREE):
@@ -93,8 +100,8 @@ def main():
     sh(f"cd {DEPLOY_TREE} && git push -f origin HEAD:gh-pages", critical=True)
 
     # --- Cleanup ---
-    sh(f"git worktree remove {BUILD_TREE} --force", critical=True)
-    sh(f"git worktree remove {DEPLOY_TREE} --force", critical=True)
+    force_clean_worktree(BUILD_TREE)
+    force_clean_worktree(DEPLOY_TREE)
 
     print(c("✅ Deploy complete. Main branch untouched.", "green"))
 
