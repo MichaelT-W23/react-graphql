@@ -8,6 +8,7 @@ import atexit
 from termcolor import colored as c
 
 # ====== CONFIG ======
+VERSION = "1.0.0"
 CNAME_DOMAIN = "react.bookql.com"
 
 # Base names (actual paths become unique per run)
@@ -87,11 +88,9 @@ def rm_rf(path: str):
     try:
         shutil.rmtree(path)
     except Exception:
-        # Fall back to shell delete (sometimes better for permission quirks)
         sh(f"rm -rf '{path}'", critical=False, quiet=False)
 
     if os.path.exists(path):
-        # Last resort: sudo hint (we won't run sudo inside script)
         print(c(f"❌ Could not delete: {path}", "red"))
         print(c("   Something is holding it open (Finder / VSCode / Spotlight / iCloud).", "red"))
         print(c("   Try:", "yellow"))
@@ -119,7 +118,6 @@ def force_clean_worktree(path: str):
 def unique_temp_dir(base: str) -> str:
     """
     Create a unique per-run temp directory path (NOT created yet).
-    Using pid + timestamp + short uuid prevents macOS resurrecting fixed paths.
     """
     base = abspath(base)
     suffix = f"{os.getpid()}-{int(time.time())}-{uuid.uuid4().hex[:8]}"
@@ -139,10 +137,6 @@ def git_has_local_branch(branch: str) -> bool:
 def ensure_deploy_worktree(dep: str):
     """
     Creates a deploy worktree at `dep` on gh-pages.
-    Strategy:
-    1) If origin/gh-pages exists: worktree add from it
-    2) Else if local gh-pages exists: add it
-    3) Else: create detached worktree then orphan gh-pages inside it (first-run bootstrap)
     """
     dep = abspath(dep)
 
@@ -165,6 +159,8 @@ def ensure_deploy_worktree(dep: str):
 
 
 def main():
+    print(c(f"update_github_pages.py v{VERSION}", "cyan"))
+
     # ---- Safety: must run from main branch ----
     branch = get_branch()
     if branch != "main":
@@ -176,7 +172,7 @@ def main():
         print(c("❌ Not in a git repo.", "red"))
         sys.exit(1)
 
-    # Unique per-run paths (unstoppable vs macOS resurrecting fixed dirs)
+    # Unique per-run paths
     BUILD = unique_temp_dir(BUILD_TREE_BASE)
     DEPLOY = unique_temp_dir(DEPLOY_TREE_BASE)
 
@@ -184,16 +180,14 @@ def main():
     assert_outside_repo(root, BUILD, "BUILD_TREE")
     assert_outside_repo(root, DEPLOY, "DEPLOY_TREE")
 
-    # Cleanup on exit no matter what (best-effort)
+    # Best-effort cleanup on exit
     def _cleanup():
-        try:
-            force_clean_worktree(BUILD)
-        except Exception:
-            pass
-        try:
-            force_clean_worktree(DEPLOY)
-        except Exception:
-            pass
+        for label, p in [("BUILD", BUILD), ("DEPLOY", DEPLOY)]:
+            try:
+                force_clean_worktree(p)
+            except Exception as e:
+                if DEBUG:
+                    print(c(f"⚠️ atexit cleanup failed for {label}: {p} ({e})", "yellow"))
 
     atexit.register(_cleanup)
 
@@ -205,7 +199,7 @@ def main():
     sh(f'git commit -m "{msg}" || true', critical=False)
     sh("git push origin main", critical=True)
 
-    # ---- Build in isolated detached worktree ----
+    # ---- Build ----
     print(c("• Preparing isolated build tree…", "cyan"))
     force_clean_worktree(BUILD)
     sh(f"git worktree add --detach '{BUILD}'", critical=True)
@@ -216,7 +210,7 @@ def main():
     print(c("• Building…", "cyan"))
     sh(f"cd '{BUILD}' && npm run build", critical=True, quiet=False)
 
-    # ---- Verify build ----
+    # ---- Verify ----
     print(c("• Verifying build…", "cyan"))
     ensure(f"{BUILD}/dist", "dist directory")
     ensure(f"{BUILD}/dist/index.html", "dist/index.html")
@@ -232,25 +226,23 @@ def main():
     sh(f"cp '{BUILD}/dist/index.html' '{BUILD}/dist/404.html'", critical=True)
     sh(f'echo "{CNAME_DOMAIN}" > "{BUILD}/dist/CNAME"', critical=True)
 
-    # ---- Deploy via gh-pages worktree ----
+    # ---- Deploy ----
     print(c("• Preparing deploy tree…", "cyan"))
     force_clean_worktree(DEPLOY)
     ensure_deploy_worktree(DEPLOY)
-    
+
     git_marker = os.path.join(DEPLOY, ".git")
     if not os.path.exists(git_marker):
         print(c("❌ Deploy tree is not a git repo. Aborting.", "red"))
         sys.exit(1)
 
-
     print(c("• Deploying to gh-pages…", "cyan"))
 
-    # If gh-pages exists remotely, sync to it before wipe/copy
     if git_has_remote_branch("gh-pages"):
         sh(f"cd '{DEPLOY}' && git fetch origin gh-pages", critical=False)
         sh(f"cd '{DEPLOY}' && git reset --hard origin/gh-pages", critical=False)
 
-    # Safe wipe (inside DEPLOY only)
+    # Safe wipe (preserve .git)
     sh(f"find '{DEPLOY}' -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {{}} +", critical=True)
     sh(f"cp -R '{BUILD}/dist/.' '{DEPLOY}/'", critical=True)
 
@@ -258,7 +250,8 @@ def main():
     sh(f"cd '{DEPLOY}' && git commit -m 'Deploy' || true", critical=False)
     sh(f"cd '{DEPLOY}' && git push origin gh-pages", critical=True)
 
-    # ---- Explicit cleanup ----
+    # ---- Cleanup ----
+    print(c("• Cleaning up temp dirs…", "cyan"))
     force_clean_worktree(BUILD)
     force_clean_worktree(DEPLOY)
 
