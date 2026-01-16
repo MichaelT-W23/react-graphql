@@ -8,7 +8,7 @@ import atexit
 from termcolor import colored as c
 
 # ====== CONFIG ======
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 CNAME_DOMAIN = "react.bookql.com"
 
 # Base names (actual paths become unique per run)
@@ -77,8 +77,8 @@ def ensure(path: str, label: str):
 
 def rm_rf(path: str):
     """
-    Aggressive, cross-platform-ish delete with verification.
-    Uses shutil.rmtree to avoid shell weirdness; falls back to rm -rf if needed.
+    Aggressive delete with verification.
+    Uses shutil.rmtree; falls back to rm -rf if needed.
     """
     path = abspath(path)
 
@@ -105,11 +105,9 @@ def worktree_prune():
 
 def force_clean_worktree(path: str):
     """
-    Removes worktree registration (if any) AND deletes directory on disk,
-    then verifies it's gone.
+    Removes worktree registration (if any) AND deletes directory on disk.
     """
     path = abspath(path)
-
     sh(f"git worktree remove '{path}' --force", critical=False)
     worktree_prune()
     rm_rf(path)
@@ -137,6 +135,10 @@ def git_has_local_branch(branch: str) -> bool:
 def ensure_deploy_worktree(dep: str):
     """
     Creates a deploy worktree at `dep` on gh-pages.
+
+    IMPORTANT:
+    - Always ends with DEPLOY checked out to *local* branch 'gh-pages' (not detached),
+      so commits advance the branch tip and pushes update origin/gh-pages.
     """
     dep = abspath(dep)
 
@@ -144,22 +146,26 @@ def ensure_deploy_worktree(dep: str):
         print(c(f"❌ Deploy path already exists (unexpected): {dep}", "red"))
         sys.exit(1)
 
+    # If remote exists, create a local branch pointing at it (once), then worktree it.
     if git_has_remote_branch("gh-pages"):
-        sh(f"git worktree add '{dep}' origin/gh-pages", critical=True)
+        if not git_has_local_branch("gh-pages"):
+            sh("git fetch origin gh-pages", critical=True)
+            sh("git branch gh-pages origin/gh-pages", critical=False)  # may already exist
+        sh(f"git worktree add '{dep}' gh-pages", critical=True)
         return
 
+    # If local exists, just add it
     if git_has_local_branch("gh-pages"):
         sh(f"git worktree add '{dep}' gh-pages", critical=True)
         return
 
-    # First-ever deploy: orphan gh-pages
+    # First-ever deploy: create orphan gh-pages and ensure it's a real branch
     sh(f"git worktree add --detach '{dep}'", critical=True)
     sh(f"cd '{dep}' && git switch --orphan gh-pages", critical=True)
     sh(f"cd '{dep}' && git rm -rf .", critical=False)
 
 
 def main():
-
     # ---- Safety: must run from main branch ----
     branch = get_branch()
     if branch != "main":
@@ -235,6 +241,15 @@ def main():
         print(c("❌ Deploy tree is not a git repo. Aborting.", "red"))
         sys.exit(1)
 
+    # HARD GUARANTEE: deploy worktree must be on gh-pages branch (not detached)
+    head_state = run_capture(f"cd '{DEPLOY}' && git symbolic-ref --quiet --short HEAD || echo DETACHED").stdout.strip()
+    if head_state == "DETACHED":
+        print(c("❌ Deploy worktree is DETACHED. Refusing to deploy.", "red"))
+        print(c("   This would create commits that do not advance gh-pages.", "red"))
+        sys.exit(1)
+    if head_state != "gh-pages":
+        sh(f"cd '{DEPLOY}' && git switch gh-pages", critical=True)
+
     print(c("• Deploying to gh-pages…", "cyan"))
 
     if git_has_remote_branch("gh-pages"):
@@ -248,7 +263,9 @@ def main():
     sh(f"cd '{DEPLOY}' && git add .", critical=True)
     sh(f"cd '{DEPLOY}' && git status --porcelain", critical=False, quiet=False)
     sh(f"cd '{DEPLOY}' && git commit -m 'Deploy' || true", critical=False)
-    sh(f"cd '{DEPLOY}' && git push origin gh-pages", critical=True)
+
+    # PUSH THE BRANCH TIP (not detached HEAD)
+    sh(f"cd '{DEPLOY}' && git push origin gh-pages:gh-pages", critical=True)
 
     # ---- Cleanup ----
     print(c("• Cleaning up temp dirs…", "cyan"))
