@@ -66,7 +66,7 @@ def main():
     # ---- Commit source ----
     print(c("• Committing source…", "cyan"))
     sh("git add .", critical=True)
-    sh(f'git commit -m "{msg}" || true', critical=True)
+    sh(f'git commit -m "{msg}" || true', critical=False)
     sh("git push origin main", critical=True)
 
     # ---- Build in isolated detached worktree ----
@@ -108,12 +108,18 @@ def main():
         sh(f"git worktree add {DEPLOY_TREE} --orphan gh-pages", critical=True)
 
     print(c("• Deploying to gh-pages…", "cyan"))
-    sh(f"rm -rf {DEPLOY_TREE}/*", critical=True)
+    # Sync with remote gh-pages first
+    sh(f"cd {DEPLOY_TREE} && git fetch origin gh-pages", critical=True)
+    sh(f"cd {DEPLOY_TREE} && git reset --hard origin/gh-pages", critical=True)
+
+    # Now replace contents
+    sh(f"find {DEPLOY_TREE} -mindepth 1 -maxdepth 1 -exec rm -rf {{}} +", critical=True)
     sh(f"cp -r {BUILD_TREE}/dist/* {DEPLOY_TREE}/", critical=True)
 
     sh(f"cd {DEPLOY_TREE} && git add .", critical=True)
     sh(f'cd {DEPLOY_TREE} && git commit -m "Deploy" || true', critical=False)
     sh(f"cd {DEPLOY_TREE} && git push origin gh-pages", critical=True)
+
 
     # ---- Cleanup ----
     force_clean_worktree(BUILD_TREE)
