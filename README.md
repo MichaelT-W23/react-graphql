@@ -1,6 +1,6 @@
 # react-graphql-website
-## [Link to Website](react.bookql.com)
-This is the React website for the [BookQL-Api](https://api.bookql.com/).
+## [Link to Website](https://react.bookql.com/)
+This is the React website for the BookQL-Api.
 
 ## Technologies Used
 - React
