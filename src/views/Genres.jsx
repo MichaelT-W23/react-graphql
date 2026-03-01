@@ -39,8 +39,8 @@ const GET_ALL_BOOKS = gql`
 `;
 
 export default function Genres() {
-  const { data: genreData } = useQuery(GET_ALL_GENRES);
-  const { data: allBooksData, loading, error } = useQuery(GET_ALL_BOOKS);
+  const { data: genreData, refetch: refetchGenres } = useQuery(GET_ALL_GENRES);
+  const { data: allBooksData, loading, error, refetch: refetchAllBooks } = useQuery(GET_ALL_BOOKS);
 
   const [selectedGenre, setSelectedGenre] = useState("All");
 
@@ -48,10 +48,17 @@ export default function Genres() {
     useLazyQuery(GET_BOOKS_BY_GENRE);
 
   useEffect(() => {
-    if (selectedGenre !== "All") {
-      fetchBooksByGenre({ variables: { genre: selectedGenre } });
-    }
-  }, [selectedGenre, fetchBooksByGenre]);
+    refetchGenres();
+    refetchAllBooks();
+  }, [refetchGenres, refetchAllBooks]);
+
+  useEffect(() => { 
+    if (selectedGenre === "All") { 
+      refetchAllBooks(); 
+    } else { 
+      fetchBooksByGenre({ variables: { genre: selectedGenre } }); 
+    } 
+  }, [selectedGenre, refetchAllBooks, fetchBooksByGenre]);
 
   const genres = genreData?.getAllGenres || [];
   const books = selectedGenre === "All" ? allBooksData?.getAllBooks || [] : genreBooksData?.getBooksByGenre || [];

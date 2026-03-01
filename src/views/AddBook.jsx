@@ -43,8 +43,7 @@ export default function AddBook() {
   const [selectedAuthorUuid, setSelectedAuthorUuid] = useState("");
   const [reactiveGenres, setReactiveGenres] = useState([]);
   
-  // const { data: authorsData, refetch: refetchAuthors } = useQuery(GET_ALL_AUTHORS);
-  const { data: authorsData } = useQuery(GET_ALL_AUTHORS);
+  const { data: authorsData, refetch: refetchAuthors } = useQuery(GET_ALL_AUTHORS);
   const { data: genresData } = useQuery(GET_ALL_GENRES);
   
   const [createBook] = useMutation(CREATE_BOOK, {
@@ -52,9 +51,9 @@ export default function AddBook() {
     awaitRefetchQueries: true,
   });
   
-  // useEffect(() => {
-  //   refetchAuthors();
-  // }, [refetchAuthors]);
+  useEffect(() => {
+    refetchAuthors();
+  }, [refetchAuthors]);
 
   useEffect(() => {
     if (genresData?.getAllGenres) {
@@ -89,7 +88,7 @@ export default function AddBook() {
       setSelectedGenre("");
       setNewGenre("");
       setSelectedAuthorUuid("");
-      // refetchAuthors();
+      refetchAuthors();
     } catch (err) {
       alert("Error adding book");
     }

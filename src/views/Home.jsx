@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import BookCard from "../components/BookCard";
 import styles from '../styles/views/Home.module.css';
@@ -18,7 +19,11 @@ const GET_ALL_BOOKS = gql`
 `;
 
 const BooksList = () => {
-  const { loading, error, data } = useQuery(GET_ALL_BOOKS);
+  const { loading, error, data, refetch } = useQuery(GET_ALL_BOOKS);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   if (loading) return <p className={styles['loading-text']}>Loading books...</p>;
   if (error) return <p className={styles.errorText}>Error loading books: {error.message}</p>;

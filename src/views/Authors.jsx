@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import AuthorCard from "../components/AuthorCard";
 
@@ -19,7 +20,11 @@ const GET_ALL_AUTHORS = gql`
 `;
 
 const AuthorsPage = () => {
-  const { data, loading, error } = useQuery(GET_ALL_AUTHORS);
+  const { data, loading, error, refetch } = useQuery(GET_ALL_AUTHORS);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   return (
     <div className="flex flex-col items-center">
