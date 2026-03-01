@@ -24,7 +24,7 @@ const AuthorCard = ({ name, details }) => {
           {details.books && details.books.length ? (
             <ul className="list-none space-y-2">
               {details.books.map((book) => (
-                <li key={book.id} className="text-sm text-gray-700">
+                <li key={book.uuid} className="text-sm text-gray-700">
                   <strong>• {book.title}</strong> ({book.publicationYear}) - {book.genre}
                 </li>
               ))}
@@ -45,7 +45,7 @@ AuthorCard.propTypes = {
     nationality: PropTypes.string,
     books: PropTypes.arrayOf(
       PropTypes.shape({
-        id: PropTypes.number.isRequired,
+        uuid: PropTypes.string.isRequired,
         title: PropTypes.string.isRequired,
         publicationYear: PropTypes.number.isRequired,
         genre: PropTypes.string.isRequired

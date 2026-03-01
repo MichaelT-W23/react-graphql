@@ -11,11 +11,12 @@ const GET_ALL_GENRES = gql`
 const GET_BOOKS_BY_GENRE = gql`
   query GetBooksByGenre($genre: String!) {
     getBooksByGenre(genre: $genre) {
-      id
+      uuid
       title
       publicationYear
       genre
       author {
+        uuid
         name
       }
     }
@@ -25,11 +26,12 @@ const GET_BOOKS_BY_GENRE = gql`
 const GET_ALL_BOOKS = gql`
   query {
     getAllBooks {
-      id
+      uuid
       title
       publicationYear
       genre
       author {
+        uuid
         name
       }
     }
@@ -37,8 +39,8 @@ const GET_ALL_BOOKS = gql`
 `;
 
 export default function Genres() {
-  const { data: genreData, refetch: refetchGenres } = useQuery(GET_ALL_GENRES);
-  const { data: allBooksData, loading, error, refetch: refetchAllBooks } = useQuery(GET_ALL_BOOKS);
+  const { data: genreData } = useQuery(GET_ALL_GENRES);
+  const { data: allBooksData, loading, error } = useQuery(GET_ALL_BOOKS);
 
   const [selectedGenre, setSelectedGenre] = useState("All");
 
@@ -46,17 +48,10 @@ export default function Genres() {
     useLazyQuery(GET_BOOKS_BY_GENRE);
 
   useEffect(() => {
-    refetchGenres();
-    refetchAllBooks();
-  }, [refetchGenres, refetchAllBooks]);
-
-  useEffect(() => {
-    if (selectedGenre === "All") {
-      refetchAllBooks();
-    } else {
+    if (selectedGenre !== "All") {
       fetchBooksByGenre({ variables: { genre: selectedGenre } });
     }
-  }, [selectedGenre, refetchAllBooks, fetchBooksByGenre]);
+  }, [selectedGenre, fetchBooksByGenre]);
 
   const genres = genreData?.getAllGenres || [];
   const books = selectedGenre === "All" ? allBooksData?.getAllBooks || [] : genreBooksData?.getBooksByGenre || [];
@@ -90,8 +85,8 @@ export default function Genres() {
       {books.length > 0 ? (
         <ul className="w-full flex flex-col items-center space-y-4 px-4">
           {books.map((book) => (
-            <li key={book.id} className="w-full max-w-md flex justify-center">
-              <BookCard title={book.title} body={book} />
+            <li key={book.uuid} className="w-full max-w-md flex justify-center">
+              <BookCard book={book} />
             </li>
           ))}
         </ul>

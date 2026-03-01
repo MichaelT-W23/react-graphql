@@ -7,10 +7,12 @@ const GET_ALL_BOOKS = gql`
   query {
     getAllBooks {
       id
+      uuid
       title
       publicationYear
       genre
       author {
+        uuid
         name
       }
     }
@@ -40,10 +42,9 @@ const SearchView = ({ onClose }) => {
     }
   }, [data]);
 
-  const filteredBooks = books.filter(
-    (book) =>
-      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.author.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBooks = books.filter((book) =>
+    book.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    book.author?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const clearSearch = () => {
@@ -109,7 +110,7 @@ const SearchView = ({ onClose }) => {
       <div className={styles['book-list']}>
         {filteredBooks.length > 0 ? (
           filteredBooks.map((book) => (
-            <div key={book.id} className={styles['book-item']}>
+            <div key={book.uuid} className={styles['book-item']}>
               <h3>{book.title}</h3>
               <p>Author: {book.author.name}</p>
               <p>Publication Year: {book.publicationYear}</p>

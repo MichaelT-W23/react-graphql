@@ -1,16 +1,15 @@
-import { useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import AuthorCard from "../components/AuthorCard";
 
 const GET_ALL_AUTHORS = gql`
   query {
     getAllAuthors {
-      id
+      uuid
       name
       age
       nationality
       books {
-        id
+        uuid
         title
         publicationYear
         genre
@@ -20,11 +19,7 @@ const GET_ALL_AUTHORS = gql`
 `;
 
 const AuthorsPage = () => {
-  const { data, loading, error, refetch } = useQuery(GET_ALL_AUTHORS);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { data, loading, error } = useQuery(GET_ALL_AUTHORS);
 
   return (
     <div className="flex flex-col items-center">
@@ -39,7 +34,7 @@ const AuthorsPage = () => {
       {data?.getAllAuthors?.length > 0 && (
         <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 justify-center max-w-6xl w-full pb-24">
           {data.getAllAuthors.map((author) => (
-            <li key={author.id} className="flex justify-center">
+            <li key={author.uuid} className="flex justify-center">
               <AuthorCard name={author.name} details={author} />
             </li>
           ))}

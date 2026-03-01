@@ -4,7 +4,7 @@ import { gql, useQuery, useMutation } from "@apollo/client";
 const GET_ALL_AUTHORS = gql`
   query GetAllAuthors {
     getAllAuthors {
-      id
+      uuid
       name
     }
   }
@@ -17,9 +17,19 @@ const GET_ALL_GENRES = gql`
 `;
 
 const CREATE_BOOK = gql`
-  mutation CreateBook($title: String!, $publicationYear: Int!, $genre: String!, $authorId: Int!) {
-    createBook(title: $title, publicationYear: $publicationYear, genre: $genre, authorId: $authorId) {
-      id
+  mutation CreateBook(
+    $title: String!,
+    $publicationYear: Int!,
+    $genre: String!,
+    $authorUuid: String!
+  ) {
+    createBook(
+      title: $title,
+      publicationYear: $publicationYear,
+      genre: $genre,
+      authorUuid: $authorUuid
+    ) {
+      uuid
       title
     }
   }
@@ -30,10 +40,11 @@ export default function AddBook() {
   const [publicationYear, setPublicationYear] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
   const [newGenre, setNewGenre] = useState("");
-  const [selectedAuthorId, setSelectedAuthorId] = useState("");
+  const [selectedAuthorUuid, setSelectedAuthorUuid] = useState("");
   const [reactiveGenres, setReactiveGenres] = useState([]);
   
-  const { data: authorsData, refetch: refetchAuthors } = useQuery(GET_ALL_AUTHORS);
+  // const { data: authorsData, refetch: refetchAuthors } = useQuery(GET_ALL_AUTHORS);
+  const { data: authorsData } = useQuery(GET_ALL_AUTHORS);
   const { data: genresData } = useQuery(GET_ALL_GENRES);
   
   const [createBook] = useMutation(CREATE_BOOK, {
@@ -41,9 +52,9 @@ export default function AddBook() {
     awaitRefetchQueries: true,
   });
   
-  useEffect(() => {
-    refetchAuthors();
-  }, [refetchAuthors]);
+  // useEffect(() => {
+  //   refetchAuthors();
+  // }, [refetchAuthors]);
 
   useEffect(() => {
     if (genresData?.getAllGenres) {
@@ -51,7 +62,7 @@ export default function AddBook() {
     }
   }, [genresData]);
 
-  const isValid = title.trim() && publicationYear && (selectedGenre !== "new" || newGenre.trim()) && selectedAuthorId;
+  const isValid = title.trim() && publicationYear && (selectedGenre !== "new" || newGenre.trim()) && selectedAuthorUuid;
 
   const submitBook = async (e) => {
     e.preventDefault();
@@ -62,9 +73,9 @@ export default function AddBook() {
       await createBook({
         variables: {
           title,
-          publicationYear: parseInt(publicationYear),
+          publicationYear: Number(publicationYear),
           genre,
-          authorId: parseInt(selectedAuthorId),
+          authorUuid: selectedAuthorUuid,
         },
       });
       alert("Book added successfully!");
@@ -77,8 +88,8 @@ export default function AddBook() {
       setPublicationYear("");
       setSelectedGenre("");
       setNewGenre("");
-      setSelectedAuthorId("");
-      refetchAuthors();
+      setSelectedAuthorUuid("");
+      // refetchAuthors();
     } catch (err) {
       alert("Error adding book");
     }
@@ -142,14 +153,14 @@ export default function AddBook() {
         <label className="text-lg">
           Author:
           <select 
-            value={selectedAuthorId} 
-            onChange={(e) => setSelectedAuthorId(e.target.value)} 
+            value={selectedAuthorUuid} 
+            onChange={(e) => setSelectedAuthorUuid(e.target.value)} 
             required 
             className="w-full p-2 border rounded border-gray-400"
           >
             <option value="">Select an author</option> 
             {authorsData?.getAllAuthors.map((author) => (
-              <option key={author.id} value={author.id}>{author.name}</option>
+              <option key={author.uuid} value={author.uuid}>{author.name}</option>
             ))}
           </select>
         </label>
