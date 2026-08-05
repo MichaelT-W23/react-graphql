@@ -6,3 +6,8 @@ This is the React website for the BookQL api.
 - React
 - Apollo Server
 - GraphQL
+
+## Deploy to GitHub Pages
+```
+npm run deploy
+```
