@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router';
 import HomePage from '../views/Home';
 import Authors from '../views/Authors';
 import Genres from '../views/Genres';

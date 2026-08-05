@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router";
 import { parse } from "jsonc-parser";
 import sidebarRawData from "./sidebarData.jsonc?raw";
 import SearchView from "./SearchView";
